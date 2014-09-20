@@ -125,13 +125,11 @@ typedef int Cache[3][50][51];
 int stripScore(SpVecBlock blocks,  Cache &cache, int start, int needed, int prev)
 {
     int num_blocks = blocks->size();
+    int best = BIG;
     // Block (&blocks)[num_blocks] = *((Block (*)[num_blocks]) _blocks);
     if (needed > 0 && start >= num_blocks) return BIG;
     // TODO
     // if need == 0 , then the color must be the same as prev
-    if(needed == 0){
-	;
-    }
     if (needed < 0 || start >= num_blocks) return 0;
     if (cache[prev][start][needed] != -1) return cache[prev][start][needed];
     // cout << "++++++++++ block size == " << num_blocks << endl;
@@ -139,24 +137,32 @@ int stripScore(SpVecBlock blocks,  Cache &cache, int start, int needed, int prev
     // 	cout << "  i: " << i <<  "  color: " << (*blocks)[i]->color << "   length: "  << (*blocks)[i]->length ;
     // }
     // cout << "++++++++++" << endl;
-    int best = BIG;
 
     if(start == (num_blocks-1)){
-	if(0 == needed){
-	    if(prev != (*blocks)[start]->color) cache[prev][start][0] = (*blocks)[start]->length;
-	    else cache[prev][start][0] = 0;
-	}else{
-	    cache[prev][start][needed] = 0;
-	}
+        if(0 == needed){
+            if(prev != (*blocks)[start]->color) cache[prev][start][0] = (*blocks)[start]->length;
+            else cache[prev][start][0] = 0;
+        }else{
+            cache[prev][start][needed] = 0;
+        }
     }else{
-	for (int i = 0; i < 3; i++) {
-	    int newneeded = needed, adder = 0;
-	    if (i != 0 && i != prev)  newneeded--;
-	    if (i == 0 || i != (*blocks)[start]->color) adder += (*blocks)[start]->length;
-	    int score = stripScore(blocks,cache,start+1,newneeded,i)+adder;
-	    best = best < score ? best : score;
-	}
-	cache[prev][start][needed] = BIG < best ? BIG : best;
+        if(needed == 0){
+            int adder = 0;
+            if (prev == 0 || prev != (*blocks)[start]->color) adder += (*blocks)[start]->length;
+            int score = stripScore(blocks,cache,start+1,0,prev)+adder;
+            best = best < score ? best : score;
+            cache[prev][start][needed] = best;
+        }else{
+            for (int i = 0; i < 3; i++) {
+                // for each color used in this block
+                int newneeded = needed, adder = 0;
+                if (i != 0 && i != prev)  newneeded--;
+                if (i == 0 || i != (*blocks)[start]->color) adder += (*blocks)[start]->length;
+                int score = stripScore(blocks,cache,start+1,newneeded,i)+adder;
+                best = best < score ? best : score;
+            }
+        }
+        cache[prev][start][needed] = BIG < best ? BIG : best;
     }
     cout << "start: " << start << "  needed: " << needed << "  pre: " << prev << "  ret: "
 	 << cache[prev][start][needed] << endl;
@@ -179,7 +185,7 @@ int leastBad(const string picture[], int row, int maxStrokes)
     	    if(picture[i][j] != pre_color){
     		pre_color = picture[i][j];
     		SpBlock block(new Block);
-		block->length = 0;  
+            block->length = 0;
     		if(picture[i][j] == 'B') block->color = B;
     		else if(picture[i][j] == 'W') block->color = W;
     		blocks->push_back(block);
@@ -203,10 +209,10 @@ int leastBad(const string picture[], int row, int maxStrokes)
     int r = 3;
     for(i=0;i<maxStrokes;++i)
     {
-	for(l=0;l<3;++l) for(m=0;m<50;++m) for(n=0;n<51;++n) cache[l][m][n] = -1;
-	for(j=0;j<=maxStrokes;++j){
-	    // remain[r][i] = stripScore(vec_blocks[r],cache,0,j,0);
-	}
+        for(l=0;l<3;++l) for(m=0;m<50;++m) for(n=0;n<51;++n) cache[l][m][n] = -1;
+        for(j=0;j<=maxStrokes;++j){
+            // remain[r][i] = stripScore(vec_blocks[r],cache,0,j,0);
+        }
     }
     
     // test
