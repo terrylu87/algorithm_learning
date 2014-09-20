@@ -24,7 +24,7 @@
 #include <string.h>
 #include <vector>
 #include <tr1/memory>
-//#include <stdlib.h>
+#include <stdlib.h>
 
 using namespace std;
 using namespace tr1;
@@ -106,37 +106,14 @@ void print_vec_bolcks(vector<SpVecBlock> &vec_blocks)
 }
 typedef int Cache[3][50][51];
 
-// int[][][] cache = new int[3][50][51];
-// int BIG = 3000;
-// int stripScore(int[][] row, int[][][] cache, int start, int needed, int prev) {
-//    if (needed > 0 && start >= row[0].length) return BIG;
-//    if (needed == 0 || start >= row[0].length) return 0;
-//    if (cache[prev][start][needed] != -1) return cache[prev][start][needed];
-//    int best = BIG;
-//    for (int i = 0; i < 3; i++) {
-//       int newneeded = needed, adder = 0;
-//       if (i == 0 || i == prev) newneeded--;
-//       if (i == 0 || i!=row[1][start]) adder += row[0][start];
-//       best = Math.min(best,stripScore(row,rowid,start+1,newneeded,i)+adder);
-//    } return cache[prev][start][needed] = Math.min(BIG,best);
-// }
-
-// TODO pass value blocks
 int stripScore(SpVecBlock blocks,  Cache &cache, int start, int needed, int prev)
 {
     int num_blocks = blocks->size();
     int best = BIG;
-    // Block (&blocks)[num_blocks] = *((Block (*)[num_blocks]) _blocks);
     if (needed > 0 && start >= num_blocks) return BIG;
-    // TODO
     // if need == 0 , then the color must be the same as prev
     if (needed < 0 || start >= num_blocks) return 0;
     if (cache[prev][start][needed] != -1) return cache[prev][start][needed];
-    // cout << "++++++++++ block size == " << num_blocks << endl;
-    // for(int i = 0;i<num_blocks;++i) {
-    // 	cout << "  i: " << i <<  "  color: " << (*blocks)[i]->color << "   length: "  << (*blocks)[i]->length ;
-    // }
-    // cout << "++++++++++" << endl;
 
     if(start == (num_blocks-1)){
         if(0 == needed){
@@ -164,22 +141,20 @@ int stripScore(SpVecBlock blocks,  Cache &cache, int start, int needed, int prev
         }
         cache[prev][start][needed] = BIG < best ? BIG : best;
     }
-    cout << "start: " << start << "  needed: " << needed << "  pre: " << prev << "  ret: "
-	 << cache[prev][start][needed] << endl;
+    // cout << "start: " << start << "  needed: " << needed << "  pre: " << prev << "  ret: "
+	 // << cache[prev][start][needed] << endl;
     return cache[prev][start][needed];
 }
 
-int leastBad(const string picture[], int row, int maxStrokes)
+int leastBad(const string picture[], int row, const int maxStrokes)
 {
     int i,j,k,l,m,n;
     int col = picture[0].size();
     shared_ptr<int> a;
-    // vector<shared_ptr<vector<Block> > > vec_blocks;
     vector<SpVecBlock> vec_blocks;
 
     for(i=0;i<row;++i){
     	char pre_color = '#';
-	// zllu
     	SpVecBlock blocks(new vector<SpBlock>());
     	for(j=0;j<col;++j){
     	    if(picture[i][j] != pre_color){
@@ -194,62 +169,42 @@ int leastBad(const string picture[], int row, int maxStrokes)
     	}
     	vec_blocks.push_back(blocks);
     }
-    // return 0;
-    cout << "nice" << endl;
-    print_vec_bolcks(vec_blocks);
-    // for(i=0;i<row;++i){
-    // 	cout << "num_blocks : " << num_blocks[i] << endl;
-    // }
 
-    int remain[row][col];
-    memset(remain,0,sizeof(int)*row*col);
+    int remain[row][maxStrokes+1];
+    memset(remain,0,sizeof(int)*row*(maxStrokes+1));
 
     Cache cache;
 
-    int r = 3;
-    for(i=0;i<maxStrokes;++i)
-    {
+    for(int r = 0; r < row; ++r){
         for(l=0;l<3;++l) for(m=0;m<50;++m) for(n=0;n<51;++n) cache[l][m][n] = -1;
         for(j=0;j<=maxStrokes;++j){
-            // remain[r][i] = stripScore(vec_blocks[r],cache,0,j,0);
+            remain[r][j] = stripScore(vec_blocks[r],cache,0,j,0);
         }
     }
-    
-    // test
-    SpBlock b1(new Block);
-    SpBlock b2(new Block);
-    b1->color=2;
-    b1->length=5;
-    b2->color=1;
-    b2->length=5;
-    SpVecBlock vb(new vector<SpBlock>);
-    vb->push_back(b1);
-    vb->push_back(b2);
-    for(l=0;l<3;++l) for(m=0;m<50;++m) for(n=0;n<51;++n) cache[l][m][n] = -1;
-    for(j=0;j<=maxStrokes;++j){
-    	int score = stripScore(vb,cache,0,j,0);
+
+    // zllu
+    // calculate the score for the whole picture.
+    int Scores[row][maxStrokes+1];
+    for(i=0;i<=maxStrokes;++i){
+        Scores[0][i] = remain[0][i];
     }
-    // test
-    
-    // caculate the mispainted area for specific given strokes
-    // for(i=0;i<row;++i){
-    // 	for(l=0;l<3;++l) for(m=0;m<50;++m) for(n=0;n<51;++n) cache[l][m][n] = -1;
-    // 	for(j=0;j<=maxStrokes;++j){
-    // 	    // TODO
-    // 	    remain[i][j] = stripScore(vec_blocks[i],cache,0,j,0);
-    // 	    // remain[i][j] = col - stripScore(vec_blocks[i],cache,0,j,0);
-    // 	}
-    // }
+    for(i=1;i<row;++i){
+        // for each row
+        for(j=0;j<=maxStrokes;++j){
+            // for every possible strokes that can be taken for all rows including i row.
+            int score = BIG;
+            for(k=0;k<=j;++k){
+                // for every possible strokes taken by i row
+                // calculate the score
+                int tmp_score = remain[i][k] + Scores[i-1][j-k];
+                score = score < tmp_score ? score : tmp_score;
+            }
+            Scores[i][j] = score;
+        }
+    }
+    cout << "------" << Scores[row-1][maxStrokes] << endl;
 
-    // for(i=0;i<row;++i){
-    // 	for(j=0;j<col;++j){
-    // 	    cout << "row: " << i << " given_strokes: " << j << " remains: " << remain[i][j] << endl;
-    // 	    if(0 == remain[i][j]) continue;
-    // 	}
-    // 	cout << "---------------------" << endl;
-    // }
-
-    return 0;
+    return Scores[row-1][maxStrokes];
 }
 
 #define TEST(DATA,maxStrokes) leastBad(DATA,sizeof(DATA)/sizeof(string),maxStrokes);
@@ -257,12 +212,12 @@ int leastBad(const string picture[], int row, int maxStrokes)
 int main(int argc,char ** argv)
 {
     cout << "MiniPaint" << endl;
-    
+
     TEST(TEST_MAP_0,MAX_STROKES_0);
-    // TEST(TEST_MAP_1,MAX_STROKES_1);
-    // TEST(TEST_MAP_2,MAX_STROKES_2);
-    // TEST(TEST_MAP_3,MAX_STROKES_3);
-    // TEST(TEST_MAP_4,MAX_STROKES_4);
-      
+    TEST(TEST_MAP_1,MAX_STROKES_1);
+    TEST(TEST_MAP_2,MAX_STROKES_2);
+    TEST(TEST_MAP_3,MAX_STROKES_3);
+    TEST(TEST_MAP_4,MAX_STROKES_4);
+
     return 0;
 }
