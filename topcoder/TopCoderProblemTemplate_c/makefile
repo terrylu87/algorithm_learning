@@ -1,42 +1,26 @@
-#CXX=mipsel-linux-gnu-g++
-#CC=laura-linux-gnu-gcc
-CC=gcc
-CXX=g++
-CFLAGS= -g -Wall -lpthread
-#CFLAGS= -g -Wall -march=laura1x
-TARGET_DIR=./bin
-BUILD_DIR=./build
-
-TARGET_NAME=hello_topcoder
-
-PROJECT=$(TARGET_NAME)
-TARGET=$(TARGET_DIR)/$(TARGET_NAME)
-
-all:example
-
-OBJ_DIR=$(BUILD_DIR)/$(PROJECT)
-
-OBJECTS=main.o
-
-INCPATH= -I.
-#INCPATH+= -I../common
-#INCPATH+= -I./list -I./common -I./testcase
-
-#VPATH+= %.c ./list
-#VPATH+= %.c ./testcase
-
-SRC=$(wildcard *.c)
-OBJ=$(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC))
-
-$(OBJECTS):%.o: %.c dir_ready
-	$(CC) -g -c $(INCPATH) $< -o $(OBJ_DIR)/$@ $(CFLAGS)
-
-example:$(OBJECTS)
-	$(CC)  $(INCPATH) -o $(TARGET) $(OBJ) $(CFLAGS)
-
-dir_ready:
-	mkdir -p $(TARGET_DIR)
-	mkdir -p $(OBJ_DIR)
-
+.PHONY	= all clean distclean
+TARGET	= app
+OPT		= -g -O0 -Wall
+CC		= gcc
+CXX		= g++
+SOURCES	= $(wildcard *.c) $(wildcard *.cc) $(wildcard *.cxx) $(wildcard *.cpp) 
+OBJS	= $(addsuffix .o, $(basename $(SOURCES)))
+CFLAGS		+= $(OPT)
+CXXFLAGS	+= $(OPT)
+all : $(TARGET)
+$(TARGET) :$(OBJS)
+	$(CXX) $(LDFLAGS) $^ -o $@
 clean:
-	-rm -rf $(BUILD_DIR) $(TARGET_DIR)
+	rm -rf *.o *.d core* *.bak
+distclean: clean
+	rm -rf $(TARGET)
+
+# common block
+# add auto dependency generation to default rule
+COMPILE.c	+= -MMD
+COMPILE.cc	+= -MMD
+DFILES   := $(OBJS:.o=.d)
+ifneq (${MAKECMDGOALS}, clean)
+ -include $(DFILES)
+endif
+# end of common block
