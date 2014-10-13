@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  BasicMath.h
+ *       Filename:  BasicMath.cpp
  *
  *    Description:
  *
  *        Version:  1.0
- *        Created:  Mon Oct 13 20:27:08 2014
+ *        Created:  Mon Oct 13 20:28:38 2014
  *
  *       Revision:  none
  *       Compiler:  gcc
@@ -16,10 +16,22 @@
  *
  * =====================================================================================
  */
+#include "BasicMath.h"
 
-#ifndef _BASICMATH_H_
-#define _BASICMATH_H_
+#include <cmath>
 
-bool isPrime (int n);
+using namespace std;
 
-#endif /* _BASICMATH_H_ */
+bool isPrime (int n)
+{
+   if (n<=1) return false;
+   if (n==2) return true;
+   if (n%2==0) return false;
+   int m=sqrt(n);
+
+   for (int i=3; i<=m; i+=2)
+      if (n%i==0)
+         return false;
+
+   return true;
+}
