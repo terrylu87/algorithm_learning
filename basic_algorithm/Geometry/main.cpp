@@ -26,10 +26,10 @@ using namespace std;
 
 int main(int argc,char ** argv)
 {
-    Vector3d a(1,2,3),b(3,4,5);
-    Vector3d c;
+    Vector2d a(1,2),b(3,4);
+    Vector2d c(0,0);
     // c = a+b;
-    c = a^b;
+    // c = a^b;
     cout << c << endl;
 
     return 0;
