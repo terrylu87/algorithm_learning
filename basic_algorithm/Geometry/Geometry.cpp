@@ -3,7 +3,7 @@
  *
  *       Filename:  Geometry.cpp
  *
- *    Description:
+ *    Description:  Geometric algorithms using in topcoder. Because topcoder does not allow Boost. I have to implement a simple one myself. For other usages, I strongly recommend Boost Geometry library.
  *
  *        Version:  1.0
  *        Created:  Thu Oct 16 14:13:36 2014
@@ -17,7 +17,6 @@
  * =====================================================================================
  */
 #include "Geometry.h"
-
 #include <cmath>
 
 // for 3d point
@@ -137,4 +136,47 @@ double linePointDist(Point3d A, Point3d B, Point3d C, bool isSegment)
 {
     double ret=0;
     return ret;
+}
+
+// Line2d::Line2d(const Line2d& l)
+// {
+// }
+
+Line2d::Line2d(const double& _a,const double& _b,const double& _c)
+{
+    A = _a;
+    B = _b;
+    C = _c;
+}
+
+Line2d::Line2d(const Point2d& a,const Point2d& b)
+{
+// A = y2-y1
+// B = x1-x2
+// C = A*x1+B*y1
+    A = b.y - a.y;
+    B = a.x - b.x;
+    C = A*a.x + B*a.y;
+}
+
+bool isIntersected(const Line2d l1, const Line2d l2)
+{
+    // double det = A1*B2 - A2*B1;
+    double det = l1.A * l2.B - l2.A * l1.B;
+    if(det == 0) return false;
+    else return true;
+}
+
+Point2d getIntersection(const Line2d l1, const Line2d l2)
+{
+    Point2d ret(INFINITY,INFINITY);
+
+    double det = l1.A * l2.B - l2.A * l1.B;
+    if(det == 0){
+        return ret;
+    }else{
+        ret.x = (l2.B*l1.C - l1.B*l2.C)/det;
+        ret.y = (l1.A*l2.C - l2.A*l1.C)/det;
+        return ret;
+    }
 }
