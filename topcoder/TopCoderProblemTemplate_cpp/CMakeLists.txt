@@ -1,5 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 
+set (TARGET_NAME example)
+set (GTEST_ENABLED ON)
+
 project (Example)
 
 set (Example_VERSION_MAJOR 1)
@@ -12,10 +15,13 @@ file(GLOB SRC
 
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
-  /usr/local/include/
-  )
-target_link_libraries(
-  gtest
+  # /usr/local/include/
   )
 
-add_executable(example ${SRC})
+add_executable(${TARGET_NAME} ${SRC})
+
+if(GTEST_ENABLED)
+  target_link_libraries(
+    ${TARGET_NAME} gtest pthread
+    )
+endif(GTEST_ENABLED)
